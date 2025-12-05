@@ -34,7 +34,7 @@ def test_matching():
     # Provider data (Same as Stage 3 test)
     # npi="1234567890" corresponds to 'Robert Smith' in our seeded/test data
     provider_data = {
-        "npi": "1234567890",
+        "npi": "1234587890",
         "first_name": "Bob",
         "last_name": "Smith",
         "email": "bob.smith@hospital.org",
