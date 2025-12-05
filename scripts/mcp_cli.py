@@ -40,9 +40,20 @@ async def interact(session: ClientSession):
                 tool = tools[idx]
                 print(f"\n--- {tool.name} ---")
                 print(f"Description: {tool.description}")
-                print(f"Input Schema: {json.dumps(tool.inputSchema, indent=2)}")
                 
-                print("\nEnter arguments as JSON (e.g. {\"query\": \"smith\"}).")
+                # Generate helpful example
+                if tool.name == "search_providers":
+                    example = '{"query": "smith"}'
+                elif tool.name == "get_provider_details":
+                    example = '{"npi": "1234567890"}'
+                elif tool.name == "match_provider":
+                    example = '{"npi": "1234567890", "first_name": "Bob", "last_name": "Smith"}'
+                else:
+                    example = "{}"
+                
+                print(f"Expected Input Format (Example):\n{example}")
+                
+                print("\nEnter arguments as JSON.")
                 print("Press Enter with empty text to send empty object {}.")
                 args_str = input("> ").strip()
                 
