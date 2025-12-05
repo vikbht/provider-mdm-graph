@@ -3,6 +3,10 @@ Script to populate the graph with 10,000 provider records.
 """
 from typing import List
 import time
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from app.generator import generate_dataset
 from app.engine import ProviderMDMEngine
 from app.config import Neo4jConnection

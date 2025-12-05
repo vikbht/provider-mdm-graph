@@ -2,6 +2,10 @@
 Test script for Stage 3: Entity Resolution / Matching.
 This script demonstrates how the system identifies duplicates.
 """
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from app.config import Neo4jConnection
 from app.engine import ProviderMDMEngine
 from app.models import Provider

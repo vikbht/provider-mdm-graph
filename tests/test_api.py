@@ -1,7 +1,12 @@
-"""
-Verification script for the Provider MDM API.
-"""
+import sys
+import os
+
+# Add project root to path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import requests
+import time
+from app.models import Provider
 import time
 import sys
 from app.models import Provider
