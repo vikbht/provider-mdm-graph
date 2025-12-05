@@ -1,5 +1,5 @@
-"""Configuration module for MDM system."""
 import os
+import sys
 from typing import Dict, List
 from neo4j import GraphDatabase
 from dotenv import load_dotenv
@@ -19,16 +19,16 @@ class Neo4jConnection:
         """Establish connection to Neo4j."""
         try:
             self.driver = GraphDatabase.driver(self.uri, auth=(self.user, self.password))
-            print(f"Connected to Neo4j at {self.uri}")
+            print(f"Connected to Neo4j at {self.uri}", file=sys.stderr)
         except Exception as e:
-            print(f"Failed to connect to Neo4j: {e}")
+            print(f"Failed to connect to Neo4j: {e}", file=sys.stderr)
             raise
     
     def close(self):
         """Close the Neo4j connection."""
         if self.driver:
             self.driver.close()
-            print("Connection closed")
+            print("Connection closed", file=sys.stderr)
     
     def execute_query(self, query: str, parameters: Dict = None):
         """Execute a Cypher query."""

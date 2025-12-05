@@ -93,6 +93,8 @@ async def main():
                 await session.initialize()
                 await interact(session)
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         print(f"\nFailed to connect to MCP server: {e}")
         print("Ensure 'uv run provider-mcp' works manually.")
 
