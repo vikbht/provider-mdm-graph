@@ -43,3 +43,12 @@ You can run the server over stdio for testing:
 ```bash
 uv run provider-mcp
 ```
+
+### Interactive CLI (No Claude/Node required)
+A custom Python CLI is included to interact with the server directly from your terminal:
+
+```bash
+uv run provider-mcp-cli
+```
+
+This tool allows you to list tools, select them, and input arguments as JSON to see real-time results.
