@@ -57,8 +57,11 @@ uv run scripts/demo.py
 ```
 
 ## API Documentation
+The solution includes a REST API for real-time matching.
 
-Key classes and methods:
+**[Read the full API Guide](docs/API_GUIDE.md)** for details on endpoints and usage.
+
+Key internal classes:
 
 - app.config.Neo4jConnection
   - connect(), close(), execute_query(query, params)
