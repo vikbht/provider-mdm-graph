@@ -61,6 +61,10 @@ The solution includes a REST API for real-time matching.
 
 **[Read the full API Guide](docs/API_GUIDE.md)** for details on endpoints and usage.
 
+## MCP Server (Agent Integration)
+The solution includes an MCP server to allow LLM agents to search/match providers.
+**[Read the MCP Guide](docs/MCP_GUIDE.md)** for setup instructions.
+
 Key internal classes:
 
 - app.config.Neo4jConnection
