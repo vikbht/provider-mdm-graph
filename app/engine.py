@@ -3,8 +3,8 @@ from typing import List, Dict, Optional, Tuple
 from datetime import datetime
 from neo4j import GraphDatabase
 from pydantic import BaseModel
-from models import Provider, ProviderComplete, MatchResult, DataQualityResult
-from config import MATCHING_CONFIG, DATA_QUALITY_RULES, GRAPH_CONSTRAINTS, GRAPH_INDEXES, Neo4jConnection
+from .models import Provider, ProviderComplete, MatchResult, DataQualityResult
+from .config import MATCHING_CONFIG, DATA_QUALITY_RULES, GRAPH_CONSTRAINTS, GRAPH_INDEXES, Neo4jConnection
 import re
 
 class ProviderMDMEngine:
@@ -26,6 +26,17 @@ class ProviderMDMEngine:
         """
         props = p.model_dump(exclude_none=True)
         return self.conn.execute_query(cypher, {"npi": p.npi, "props": props})
+
+    def batch_upsert_providers(self, providers: List[Provider]) -> None:
+        cypher = """
+        UNWIND $batch AS p_data
+        MERGE (pr:Provider {npi: p_data.npi})
+        ON CREATE SET pr += p_data, pr.created_at = datetime(), pr.updated_at = datetime()
+        ON MATCH SET  pr += p_data, pr.updated_at = datetime()
+        """
+        # Convert providers to list of dicts
+        batch_data = [p.model_dump(exclude_none=True) for p in providers]
+        self.conn.execute_query(cypher, {"batch": batch_data})
 
     def upsert_location(self, loc: Dict) -> Dict:
         cypher = """
@@ -103,7 +114,13 @@ class ProviderMDMEngine:
         records = self.conn.execute_query(q)
         results: List[MatchResult] = []
         for r in records:
-            p = Provider(**{k: v for k, v in r["p"].items() if v is not None}, last_name=r["p"].get("last_name", ""), first_name=r["p"].get("first_name", ""))
+            # Ensure first_name and last_name are populated, default to empty string if missing in DB
+            p_data = {k: v for k, v in r["p"].items() if v is not None}
+            if "first_name" not in p_data:
+                p_data["first_name"] = ""
+            if "last_name" not in p_data:
+                p_data["last_name"] = ""
+            p = Provider(**p_data)
             score, attrs = self.compute_match_score(candidate, p)
             thresholds = MATCHING_CONFIG["thresholds"]
             if score >= thresholds["exact_match"]:

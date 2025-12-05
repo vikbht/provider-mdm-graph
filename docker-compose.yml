@@ -17,6 +17,38 @@ services:
       - neo4j_logs:/logs
       - neo4j_import:/var/lib/neo4j/import
       - neo4j_plugins:/plugins
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider localhost:7474 || exit 1" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  seeder:
+    build: .
+    container_name: provider-seeder
+    depends_on:
+      neo4j:
+        condition: service_healthy
+    environment:
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=your_password_here
+    command: [ "uv", "run", "scripts/populate.py" ]
+
+  api:
+    build: .
+    container_name: provider-api
+    ports:
+      - "8000:8000"
+    depends_on:
+      neo4j:
+        condition: service_healthy
+    environment:
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=your_password_here
+    command: [ "uv", "run", "uvicorn", "app.api:app", "--host", "0.0.0.0", "--port", "8000", "--reload" ]
+
 volumes:
   neo4j_data:
   neo4j_logs:

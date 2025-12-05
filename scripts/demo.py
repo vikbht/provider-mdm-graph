@@ -1,8 +1,8 @@
 """Example usage of ProviderMDMEngine."""
-from config import Neo4jConnection
-from mdm_engine import ProviderMDMEngine
-from models import Provider
-from sample_data_generator import generate_provider
+from app.config import Neo4jConnection
+from app.engine import ProviderMDMEngine
+from app.models import Provider
+from app.generator import generate_provider
 
 
 def main():

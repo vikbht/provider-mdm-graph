@@ -2,7 +2,7 @@
 from typing import List
 from faker import Faker
 from random import choice, randint
-from models import Provider, Location, Specialty, Credential, Affiliation
+from .models import Provider, Location, Specialty, Credential, Affiliation
 from datetime import datetime, timedelta
 
 fake = Faker()

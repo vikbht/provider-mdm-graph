@@ -8,7 +8,8 @@ Comprehensive execution guide for the Provider MDM Graph Database solution.
 - Docker Desktop >= 4.x (includes Docker Engine and Docker Compose)
 - Neo4j: either via Docker or local Neo4j Desktop (v5.x)
 - Node.js >= 18 LTS and npm >= 9 (if running any helper scripts)
-- Python 3.10+ and pip (optional for scripts)
+- Python
+- uv (package manager)
 - Make (optional convenience)
 
 Ensure the following ports are available:
@@ -33,20 +34,24 @@ cd provider-mdm-graph
 ## 2. Project structure overview
 ```
 provider-mdm-graph/
-├─ docker/
-│  ├─ neo4j.conf                  # Custom Neo4j configuration (if provided)
-│  └─ .env                        # Docker-compose overrides (optional)
-├─ cypher/                        # Cypher scripts for schema, constraints, data loads
-│  ├─ 00_init_constraints.cypher
-│  ├─ 10_schema_indexes.cypher
-│  ├─ 20_load_reference_data.cypher
-│  ├─ 30_algorithms.cypher
-│  └─ utils/                      # helper cypher
-├─ data/                          # Place CSV/JSON input files here
-├─ scripts/                       # Utility scripts (bash/python/node)
-├─ notebooks/                     # Optional Jupyter notebooks
-├─ README.md
-└─ (this) EXECUTION_GUIDE.md
+├─ app/                          # Core Application Code
+│  ├─ api.py                     # FastAPI app
+│  ├─ config.py                  # Configuration
+│  ├─ engine.py                  # Graph logic
+│  ├─ models.py                  # Pydantic models
+│  └─ generator.py               # Data generator
+├─ scripts/                      # Executable Scripts
+│  ├─ populate.py                # Data seeder
+│  └─ demo.py                    # Example runner
+├─ tests/                        # Test Suite
+├─ docs/                         # Documentation
+│  └─ (this) EXECUTION_GUIDE.md
+├─ cypher/                       # Cypher scripts
+├─ data/                         # Input files
+├─ docker-compose.yml
+├─ Dockerfile
+├─ pyproject.toml
+└─ README.md
 ```
 
 Note: Folder names may differ slightly; use the closest equivalents present in the repo.
@@ -80,9 +85,7 @@ services:
 
 Start the database:
 ```
-docker compose up -d
-# or
-docker-compose up -d
+docker compose up -d --build
 ```
 
 Check logs:
@@ -91,6 +94,12 @@ docker logs -f provider-mdm-neo4j
 ```
 
 Default creds (change NEO4J_AUTH in production): neo4j / neo4jpassword
+
+Wait for the `provider-seeder` container to complete. You can follow its logs:
+```bash
+docker logs -f provider-seeder
+```
+It will output progress as it generates and inserts 10,000 records.
 
 ## 4. Initialize schema and constraints
 Run Cypher scripts to set up the graph schema. You can do this via:
@@ -220,10 +229,11 @@ cp .env.example .env      # if provided
 # NEO4J_PASSWORD=neo4jpassword
 
 # Install dependencies
-npm install    # or: pip install -r requirements.txt
+# Install dependencies
+uv sync
 
 # Run
-npm run start  # or: python app.py
+uv run scripts/demo.py
 ```
 
 ## 10. Testing

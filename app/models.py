@@ -65,6 +65,7 @@ class Provider(BaseModel):
     suffix: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None
+    license_number: Optional[str] = None
     date_of_birth: Optional[datetime] = None
     gender: Optional[str] = None
     

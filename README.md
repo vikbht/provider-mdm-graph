@@ -8,10 +8,10 @@ provider-mdm-graph implements a graph-based MDM for healthcare provider data. It
 ### Architecture
 - Neo4j graph database with labels: Provider, Location, Specialty, Credential, Affiliation
 - Constraints and indexes defined in config.py (GRAPH_CONSTRAINTS/GRAPH_INDEXES)
-- Python engine (mdm_engine.py) encapsulating graph ops, matching, merging, and quality checks
-- Pydantic models (models.py) for validation and typing
-- Sample data generator (sample_data_generator.py) using Faker
-- Example runner (main.py)
+- Python engine (app/engine.py) encapsulating graph ops, matching, merging, and quality checks
+- Pydantic models (app/models.py) for validation and typing
+- Sample data generator (app/generator.py) using Faker
+- Example runner (scripts/demo.py)
 
 Graph relationships (examples):
 - (Provider)-[:PRACTICES_AT]->(Location)
@@ -22,7 +22,8 @@ Graph relationships (examples):
 ## Getting Started
 
 ### Prerequisites
-- Python 3.11+
+- Python
+- uv (package manager)
 - Docker (optional, for Neo4j via docker-compose)
 
 ### Setup
@@ -30,38 +31,45 @@ Graph relationships (examples):
    git clone https://github.com/vikbht/provider-mdm-graph.git
    cd provider-mdm-graph
 
-2. Create a virtual environment and install dependencies
-   python -m venv .venv
-   source .venv/bin/activate  # Windows: .venv\Scripts\activate
-   pip install -r requirements.txt
+2. Install dependencies
+   uv sync
 
 3. Configure environment
    cp .env.example .env
    # Edit .env to set NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
 
-4. Start Neo4j (Docker)
-   docker compose up -d
-   # Neo4j Browser: http://localhost:7474 (default user: neo4j)
+3. Start the application stack
+   docker compose up -d --build
+   # - Starts Neo4j
+   # - Builds and runs the seeder container which populates 10k records if missing
 
 ## Usage
-Run the example script which bootstraps constraints/indexes, inserts a sample provider, runs data quality, and performs a simple match search.
+Once the containers are running, the `provider-seeder` service automatically checks if data exists. If less than 10,000 records are present, it will generate and insert them.
 
-python main.py
+You can verify the data in Neo4j Browser (http://localhost:7474 - neo4j/your_password_here):
+```cypher
+MATCH (n:Provider) RETURN count(n)
+```
+
+To run the example matching script manually:
+```bash
+uv run scripts/demo.py
+```
 
 ## API Documentation
 
 Key classes and methods:
 
-- config.Neo4jConnection
+- app.config.Neo4jConnection
   - connect(), close(), execute_query(query, params)
   - GRAPH_CONSTRAINTS / GRAPH_INDEXES
   - DATA_QUALITY_RULES, MATCHING_CONFIG
 
-- models
+- app.models
   - Provider, Location, Specialty, Credential, Affiliation, ProviderComplete
   - MatchResult, DataQualityResult, MergeHistory
 
-- mdm_engine.ProviderMDMEngine
+- app.engine.ProviderMDMEngine
   - bootstrap_graph() -> None
   - upsert_provider(p: Provider) -> Dict
   - upsert_location(loc: Dict) -> Dict
@@ -81,7 +89,7 @@ Rules in config.DATA_QUALITY_RULES validate NPI, email, phone, and license forma
 - Merging uses APOC refactor.mergeNodes to consolidate duplicates into a golden record
 
 ## Sample Data
-sample_data_generator.py can generate Providers and related entities for demos/tests.
+app/generator.py can generate Providers and related entities for demos/tests.
 
 ## Docker Compose
 docker-compose.yml deploys Neo4j with APOC enabled and mapped ports (7474, 7687). Update NEO4J_AUTH to a secure password.
