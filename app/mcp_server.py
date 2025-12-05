@@ -145,3 +145,13 @@ if __name__ == "__main__":
     finally:
         if conn:
             conn.close()
+
+def run():
+    """Synchronous entry point for console script."""
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        pass
+    finally:
+        if conn:
+            conn.close()
