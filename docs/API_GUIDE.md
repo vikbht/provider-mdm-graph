@@ -67,6 +67,42 @@ Returns a list of potential matches, sorted by score (highest first).
 ]
 ```
 
+### `GET /search`
+Search for providers using a text query (matches name, email, NPI, or license).
+
+**Query Parameters**:
+- `q`: Search text (e.g., "Smith", "1234567890")
+
+**Example**:
+```bash
+curl "http://localhost:8000/search?q=Smith"
+```
+
+### `GET /providers/{npi}`
+Retrieve full details (360-degree view) of a specific provider by NPI.
+
+**Example**:
+```bash
+curl http://localhost:8000/providers/1234567890
+```
+
+### `POST /merge`
+Merge duplicate "Source" providers into a "Target" (Golden) record.
+
+**Request Body** (`MergeRequest` JSON):
+```json
+{
+  "target_npi": "8888800001",
+  "source_npis": ["8888800002"]
+}
+```
+
+**Effect**:
+- Source providers are marked `is_active=false`.
+- `MERGED_INTO` relationship created from Source to Target.
+- Target provider is marked `is_golden_record=true`.
+- Relationships (Locations, Specialties) are consolidated onto the Target.
+
 ### `GET /health`
 
 Health check endpoint.

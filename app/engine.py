@@ -137,13 +137,63 @@ class ProviderMDMEngine:
         return sorted(results, key=lambda x: x.match_score, reverse=True)
 
     # ---------------- Merge ----------------
-    def merge_providers(self, source_npi: str, target_npi: str) -> None:
-        cypher = """
-        MATCH (s:Provider {npi:$source}), (t:Provider {npi:$target})
-        CALL apoc.refactor.mergeNodes([s,t], {properties:"combine", mergeRels:true}) YIELD node
-        SET node.is_golden_record = true, node.updated_at = datetime()
+    def merge_providers(self, target_npi: str, source_npis: List[str]) -> None:
         """
-        self.conn.execute_query(cypher, {"source": source_npi, "target": target_npi})
+        Merge source providers into a target 'Golden Record' using Link & Flag strategy.
+        1. Link sources to target via MERGED_INTO.
+        2. Mark sources as inactive.
+        3. Copy relationships (Specialties, Locations, Credentials) to target.
+        4. Mark target as golden record.
+        """
+        # 1. Link & Flag
+        cypher_link = """
+        MATCH (t:Provider {npi: $target})
+        UNWIND $sources AS source_npi
+        MATCH (s:Provider {npi: source_npi})
+        WHERE s.npi <> t.npi
+        
+        MERGE (s)-[m:MERGED_INTO]->(t)
+        SET m.merged_at = datetime()
+        
+        SET s.is_active = false, 
+            s.master_record_id = $target, 
+            s.updated_at = datetime()
+            
+        SET t.is_golden_record = true, 
+            t.confidence_score = 1.0, 
+            t.updated_at = datetime()
+        """
+        self.conn.execute_query(cypher_link, {"target": target_npi, "sources": source_npis})
+
+        # 2. Consolidate Relationships (Locations)
+        cypher_loc = """
+        MATCH (t:Provider {npi: $target})
+        UNWIND $sources AS source_npi
+        MATCH (s:Provider {npi: source_npi})-[r:PRACTICES_AT]->(l:Location)
+        MERGE (t)-[new_r:PRACTICES_AT]->(l)
+        ON CREATE SET new_r = properties(r)
+        """
+        self.conn.execute_query(cypher_loc, {"target": target_npi, "sources": source_npis})
+
+        # 3. Consolidate Relationships (Specialties)
+        cypher_spec = """
+        MATCH (t:Provider {npi: $target})
+        UNWIND $sources AS source_npi
+        MATCH (s:Provider {npi: source_npi})-[r:HAS_SPECIALTY]->(sp:Specialty)
+        MERGE (t)-[new_r:HAS_SPECIALTY]->(sp)
+        ON CREATE SET new_r = properties(r)
+        """
+        self.conn.execute_query(cypher_spec, {"target": target_npi, "sources": source_npis})
+        
+        # 4. Consolidate Relationships (Credentials)
+        cypher_cred = """
+        MATCH (t:Provider {npi: $target})
+        UNWIND $sources AS source_npi
+        MATCH (s:Provider {npi: source_npi})-[r:CREDENTIALED_AS]->(c:Credential)
+        MERGE (t)-[new_r:CREDENTIALED_AS]->(c)
+        ON CREATE SET new_r = properties(r)
+        """
+        self.conn.execute_query(cypher_cred, {"target": target_npi, "sources": source_npis})
 
     # ---------------- Queries ----------------
     def get_provider(self, npi: str) -> Optional[Dict]:
@@ -157,6 +207,8 @@ class ProviderMDMEngine:
         WHERE toLower(p.first_name) CONTAINS toLower($t)
            OR toLower(p.last_name) CONTAINS toLower($t)
            OR toLower(p.email) CONTAINS toLower($t)
+           OR p.npi CONTAINS $t
+           OR p.license_number CONTAINS $t
         RETURN p LIMIT 50
         """
         return [r["p"] for r in self.conn.execute_query(q, {"t": text})]

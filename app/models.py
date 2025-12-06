@@ -1,7 +1,7 @@
 """Data models for the MDM system using Pydantic."""
 from typing import Optional, List, Dict
 from datetime import datetime
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 import re
 
 class Location(BaseModel):
@@ -101,6 +101,18 @@ class Provider(BaseModel):
             raise ValueError('Invalid phone format')
         return v
 
+    @model_validator(mode='before')
+    @classmethod
+    def convert_neo4j_types(cls, data):
+        if isinstance(data, dict):
+            for k, v in data.items():
+                if hasattr(v, 'to_native'):
+                   data[k] = v.to_native()
+                elif hasattr(v, 'isoformat') and not isinstance(v, (str, datetime)):
+                   # Fallback for other date-like objects
+                   data[k] = v.isoformat()
+        return data
+
 class ProviderComplete(Provider):
     """Complete provider model with all relationships."""
     locations: List[Location] = []
@@ -135,4 +147,10 @@ class MergeHistory(BaseModel):
     merged_at: datetime = Field(default_factory=datetime.now)
     merge_reason: str
     attributes_merged: List[str]
+    attributes_merged: List[str]
     is_reversed: bool = False
+
+class MergeRequest(BaseModel):
+    """Request model for merging providers."""
+    target_npi: str
+    source_npis: List[str]

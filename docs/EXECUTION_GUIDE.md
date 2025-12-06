@@ -233,8 +233,39 @@ cp .env.example .env      # if provided
 uv sync
 
 # Run
+# Run
 uv run scripts/demo.py
+
+# Run API Server
+uv run uvicorn app.api:app --host 0.0.0.0 --port 8000 --reload
 ```
+
+## 9a. Running the Web Frontend
+The solution includes a modern React-based frontend in the `ui/` directory.
+
+### Prerequisites
+- Node.js (v18+)
+- npm (v9+)
+
+### Setup & Run
+1. Navigate to the UI directory:
+   ```bash
+   cd ui
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+4. Open the browser at the URL shown (usually `http://localhost:5173`).
+
+### Features
+- **Search**: Fuzzy search across provider attributes.
+- **Provider Details**: View connected graph data (Specialties, Locations).
+- **Match & Dedupe**: Interactive tool to find duplicates and merge them into Golden Records.
 
 ## 10. Testing
 Cypher assertions for sanity checks:

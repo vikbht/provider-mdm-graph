@@ -38,10 +38,18 @@ Graph relationships (examples):
    cp .env.example .env
    # Edit .env to set NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
 
-3. Start the application stack
+4. Start the application stack
    docker compose up -d --build
    # - Starts Neo4j
    # - Builds and runs the seeder container which populates 10k records if missing
+
+5. Start the Web Frontend (New!)
+   ```bash
+   cd ui
+   npm install
+   npm run dev
+   ```
+   Open http://localhost:5173 to access the MDM Interface.
 
 ## Usage
 Once the containers are running, the `provider-seeder` service automatically checks if data exists. If less than 10,000 records are present, it will generate and insert them.
@@ -56,7 +64,15 @@ To run the example matching script manually:
 uv run scripts/demo.py
 ```
 
-## API Documentation
+## Features
+
+### Web Frontend
+The new web interface (`ui/`) provides a user-friendly way to interact with the graph:
+- **Search**: Real-time provider search by name, NPI, or license.
+- **Details**: View 360-degree provider profiles including relationships.
+- **Match & Dedupe**: Identify duplicates and merge them into Golden Records.
+
+### API Documentation
 The solution includes a REST API for real-time matching.
 
 **[Read the full API Guide](docs/API_GUIDE.md)** for details on endpoints and usage.

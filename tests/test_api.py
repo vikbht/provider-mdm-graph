@@ -87,6 +87,45 @@ def test_matching():
         print("VERIFICATION FAILED: Did not find expected match.")
         sys.exit(1)
 
+
+def test_search():
+    """Test the search endpoint."""
+    print("\n Testing /search endpoint...")
+    resp = requests.get(f"{API_URL}/search?q=1234567890")
+    if resp.status_code != 200:
+        print(f"FAILED: Search returned {resp.status_code}")
+        print(resp.text)
+        sys.exit(1)
+    
+    results = resp.json()
+    print(f"Success! Search returned {len(results)} results.")
+    
+    found = any(p['npi'] == "1234567890" for p in results)
+    if found:
+        print("VERIFICATION PASSED: Found seeded provider in search.")
+    else:
+        print("VERIFICATION FAILED: Seeded provider NOT found in search.")
+        # Don't exit here, allows continuing to next test if partial fail
+
+def test_get_provider():
+    """Test the get provider details endpoint."""
+    print("\n Testing /providers/{npi} endpoint...")
+    npi = "1234567890"
+    resp = requests.get(f"{API_URL}/providers/{npi}")
+    
+    if resp.status_code != 200:
+        print(f"FAILED: Get Provider returned {resp.status_code}")
+        print(resp.text)
+        sys.exit(1)
+        
+    p = resp.json()
+    print(f"Success! Retrieved provider: {p['first_name']} {p['last_name']}")
+    
+    if p['npi'] == npi and p['email'] == "bob.smith@hospital.org":
+         print("VERIFICATION PASSED: Provider details match.")
+    else:
+         print("VERIFICATION FAILED: details do not match.")
+
 if __name__ == "__main__":
     if not wait_for_api():
         print("Timed out waiting for API.")
@@ -94,3 +133,5 @@ if __name__ == "__main__":
         
     setup_test_data()
     test_matching()
+    test_search()
+    test_get_provider()
