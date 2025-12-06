@@ -77,6 +77,11 @@ The solution includes a REST API for real-time matching.
 
 **[Read the full API Guide](docs/API_GUIDE.md)** for details on endpoints and usage.
 
+## Documentation & Artifacts
+- **[System Architecture (UML)](docs/uml_diagrams.md)**: Class, ER, and Sequence diagrams visualizing the system.
+- **[Project History (Prompts)](prompts.md)**: A log of the key prompts and decisions made during development.
+- **[Execution Guide](docs/EXECUTION_GUIDE.md)**: Detailed instructions for running and testing the application.
+
 ## MCP Server (Agent Integration)
 The solution includes an MCP server to allow LLM agents to search/match providers.
 **[Read the MCP Guide](docs/MCP_GUIDE.md)** for setup instructions.
